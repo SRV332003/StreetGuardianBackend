@@ -2,6 +2,9 @@ import mysql.connector
 from flask import *
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
+import json
+import datetime
+
 
 mydb = mysql.connector.connect(
     host="localhost",
@@ -10,7 +13,6 @@ mydb = mysql.connector.connect(
     database='sgdb'
 )
 db = mydb.cursor()
-
 
 headers = {
     'Access-Control-Allow-Origin': '*'
@@ -27,13 +29,13 @@ def home():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    db.execute("SELECT * FROM User WHERE mobile = %s AND password = %s",
+    db.execute("SELECT id FROM User WHERE mobile = %s AND password = %s",
                (data['mobile'], data['password']))
     user = db.fetchone()
     if user:
-        return jsonify({"data": True, 'status': 200})
+        return jsonify({"data": user["uid"], 'status': 200})
     else:
-        return jsonify({'status': 404})
+        return jsonify({"data":False ,'status': 404})
 
 
 @app.route('/register', methods=['POST'])
@@ -76,10 +78,11 @@ def ioregister():
 
 @app.route('/getReports', methods=['GET'])
 def getReports():
-    offset = request.args.get('offset')
-    db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC offset (%s) limit 10", (offset))
-    reports = db.fetchall()
-    return jsonify({'status': 200, 'data': reports})
+    db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC limit 10" )
+    reports = db.x
+    # type(reports)
+    print(reports)
+    return json.dumps({'status': 200, 'data': reports},default=str)
 
 @app.route('/addReport', methods=['POST'])
 def addReport():
@@ -111,4 +114,4 @@ def upvote():
     return jsonify({'status': 200, 'message': "Upvoted successfully"})
 
 
-app.run(debug=True)
+app.run(debug=True,host="0.0.0.0")
