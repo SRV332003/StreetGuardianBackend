@@ -43,18 +43,31 @@ def register():
 @app.route('/iologin', methods=['POST'])
 def iologin():
     data = request.get_json()
-    db.execute("SELECT * FROM IO WHERE mobile = %s AND password = %s", (data['mobile'], data['password']))
+    db.execute("SELECT * FROM io WHERE mobile = %s AND password = %s", (data['mobile'], data['password']))
     user = db.fetchone()
     if user:
         return jsonify({"data":True, 'status': 200})
     else:
         return jsonify({'status': 404})
+    
+@app.route('/ioregister', methods=['POST'])
+def ioregister():
+    data = request.get_json()
+    db.execute("SELECT * FROM io WHERE mobile = %s AND password = %s", (data['mobile'], data['password']))
+    user = db.fetchone()
+    if user:
+        return jsonify({'status': 404, 'message':"User already exists"})
+    db.execute("INSERT INTO io (email, mobile, password, designation, adhaar) VALUES (%s,%s, %s, %s)",(data["email"], data['mobile'], data['password'], data['designation'], data['adhaar']))
+    mydb.commit()
+    return jsonify({'status': 200, 'message':"User registered successfully"})
+    
 
 @app.route('/addReport', methods=['POST'])
 def addReport():
     data = request.get_json()
-    db.execute("INSERT INTO Report (email,LatLong, mobile, password) VALUES (%s,%s, %s, %s)",(data["email"],data['LatLong'], data['mobile'], data['password']))
+    db.execute("INSERT INTO Report () VALUES (%s,%s, %s, %s)",(data["email"],data['LatLong'], data['mobile'], data['password']))
     mydb.commit()
     return jsonify({'status': 200, 'message':"Report added successfully"})
+
 
 app.run(debug=True)
