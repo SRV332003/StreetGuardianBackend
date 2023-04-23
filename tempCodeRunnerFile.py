@@ -1,0 +1,1 @@
+ySQLdb.cursors.DictCurso

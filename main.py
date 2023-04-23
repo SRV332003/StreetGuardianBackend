@@ -3,7 +3,6 @@ from flask import *
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
 import json
-import datetime
 
 
 mydb = mysql.connector.connect(
@@ -12,7 +11,7 @@ mydb = mysql.connector.connect(
     password="",
     database='sgdb'
 )
-db = mydb.cursor()
+db = mydb.cursor(dictionary=True)
 
 headers = {
     'Access-Control-Allow-Origin': '*'
@@ -79,10 +78,10 @@ def ioregister():
 @app.route('/getReports', methods=['GET'])
 def getReports():
     db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC limit 10" )
-    reports = db.x
+    reports = db.fetchall()
     # type(reports)
     print(reports)
-    return json.dumps({'status': 200, 'data': reports},default=str)
+    return json.dumps({'status': 200, 'data': reports}, default=str)
 
 @app.route('/addReport', methods=['POST'])
 def addReport():
