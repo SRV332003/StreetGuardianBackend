@@ -1,6 +1,15 @@
 import mysql.connector
 from flask import *
 from flask_cors import CORS
+from flask_socketio import SocketIO, send, emit
+
+socketio = SocketIO(app)
+
+@socketio.on('json')
+def handle_json(json):
+    send(json, json=True)
+
+
 
 mydb = mysql.connector.connect(
     host="localhost",
@@ -70,6 +79,12 @@ def ioregister():
     mydb.commit()
     return jsonify({'status': 200, 'message': "User registered successfully"})
 
+@app.route('/getReports', methods=['GET'])
+def getReports():
+    offset = request.args.get('offset')
+    db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC offset (%s) limit 10", (offset))
+    reports = db.fetchall()
+    return jsonify({'status': 200, 'data': reports})
 
 @app.route('/addReport', methods=['POST'])
 def addReport():
