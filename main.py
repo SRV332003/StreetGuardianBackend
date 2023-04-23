@@ -36,7 +36,7 @@ def register():
     user = db.fetchone()
     if user:
         return jsonify({'status': 404, 'message':"User already exists"})
-    db.execute("INSERT INTO User (email,LatLong, mobile, password) VALUES (%s,%s, %s, %s)",(data["email"],data['LatLong'], data['mobile'], data['password']))
+    db.execute("INSERT INTO User (email, mobile, password) VALUES (%s,%s, %s, %s)",(data["email"],data['LatLong'], data['mobile'], data['password']))
     mydb.commit()
     return jsonify({'status': 200, 'message':"User registered successfully"})
 
