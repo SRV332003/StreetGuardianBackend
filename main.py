@@ -3,14 +3,6 @@ from flask import *
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
 
-socketio = SocketIO(app)
-
-@socketio.on('json')
-def handle_json(json):
-    send(json, json=True)
-
-
-
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -28,6 +20,9 @@ app = Flask(__name__)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+@app.route('/', methods=['POST',"GET"])
+def home():
+    return jsonify({'status': 200, 'message': "SWAGAT H AAPKA SHREEMATI CHIRAG MAHODAYA"})
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -90,7 +85,7 @@ def getReports():
 def addReport():
     data = request.get_json()
     db.execute(
-        "INSERT INTO report (io_id,date,time,LatLong,title,description,vehicle_type,cause,faults,severity,status,upvotes) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (data["io_id"], data["date"], data["time"], data["LatLong"], data["title"], data["description"], data["vehicle_type"], data["cause"], data["faults"], data["severity"], data["status"], data["upvotes"]))
+        "INSERT INTO report (io_id,date,time,LatLong,title,description,vehicle_type,faults,severity,status,upvotes) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (data["io_id"], data["date"], data["time"], data["LatLong"], data["title"], data["description"], data["vehicle_type"], data["faults"], data["severity"], data["status"], data["upvotes"]))
     mydb.commit()
     return jsonify({'status': 200, 'message': "Report added successfully"})
 
