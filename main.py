@@ -69,5 +69,25 @@ def addReport():
     mydb.commit()
     return jsonify({'status': 200, 'message':"Report added successfully"})
 
+@app.route('/upvote', methods=['POST'])
+def upvote():
+    data = request.get_json()
+    db.execute("SELECT upvoted_reports FROM User where uid = %s",(data["uid"]))
+    upvoted_reports = db.fetchone()["upvoted_reports"]['data'];
+    if data["report_id"] not in upvoted_reports:
+        db.execute("UPDATE User SET upvoted_reports = %s WHERE uid = %s",(upvoted_reports + data["report_id"],data["uid"]))
+        db.execute("UPDATE report SET upvotes = upvotes + 1 WHERE report_id = %s",(data["report_id"]))
+        mydb.commit()
+    else:
+        db.execute("UPDATE User SET upvoted_reports = %s WHERE uid = %s",(upvoted_reports - data["report_id"],data["uid"]))
+        db.execute("UPDATE report SET upvotes = upvotes - 1 WHERE report_id = %s",(data["report_id"]))
+        mydb.commit()
+    return jsonify({'status': 200, 'message':"Upvoted successfully"})
+
+
+    
+
+
+
 
 app.run(debug=True)
