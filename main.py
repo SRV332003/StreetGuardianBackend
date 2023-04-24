@@ -2,9 +2,8 @@ import mysql.connector
 from flask import *
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
+from flask_ngrok import run_with_ngrok
 import json
-
-
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -12,18 +11,18 @@ mydb = mysql.connector.connect(
     database='sgdb'
 )
 db = mydb.cursor(dictionary=True)
-
 headers = {
     'Access-Control-Allow-Origin': '*'
 }
-
 app = Flask(__name__)
-
+run_with_ngrok(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-@app.route('/', methods=['POST',"GET"])
+
+@app.route('/', methods=['POST', "GET"])
 def home():
     return jsonify({'status': 200, 'message': "SWAGAT H AAPKA SHREEMATI CHIRAG MAHODAYA"})
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -34,7 +33,7 @@ def login():
     if user:
         return jsonify({"data": user["uid"], 'status': 200})
     else:
-        return jsonify({"data":False ,'status': 404})
+        return jsonify({"data": False, 'status': 404})
 
 
 @app.route('/register', methods=['POST'])
@@ -44,8 +43,9 @@ def register():
                (data['mobile'], data['password']))
     user = db.fetchone()
     if user:
-        return jsonify({'status': 404, 'message':"User already exists"})
-    db.execute("INSERT INTO User (email, mobile, password) VALUES (%s,%s, %s, %s)",(data["email"],data['LatLong'], data['mobile'], data['password']))
+        return jsonify({'status': 404, 'message': "User already exists"})
+    db.execute("INSERT INTO User (email, mobile, password) VALUES (%s,%s, %s, %s)",
+               (data["email"], data['LatLong'], data['mobile'], data['password']))
     mydb.commit()
     return jsonify({'status': 200, 'message': "User registered successfully"})
 
@@ -75,19 +75,21 @@ def ioregister():
     mydb.commit()
     return jsonify({'status': 200, 'message': "User registered successfully"})
 
+
 @app.route('/getReports', methods=['GET'])
 def getReports():
-    db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC limit 10" )
+    db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC limit 10")
     reports = db.fetchall()
     # type(reports)
     print(reports)
     return json.dumps({'status': 200, 'data': reports}, default=str)
 
+
 @app.route('/addReport', methods=['POST'])
 def addReport():
     data = request.get_json()
     db.execute(
-        "INSERT INTO report (io_id,date,time,LatLong,title,description,vehicle_type,faults,severity,status,upvotes) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (data["io_id"], data["date"], data["time"], data["LatLong"], data["title"], data["description"], data["vehicle_type"], data["faults"], data["severity"], data["status"], data["upvotes"]))
+        "INSERT INTO report (io_id,date,time,LatLong,title,description,vehicle_type,faults,severity,status,upvotes) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (data["io_id"], data["date"], data["time"], data["LatLong"], data["title"], data["description"], data["vehicle_type"], data["faults"], data["severity"], data["status"], data["upvotes"]))
     mydb.commit()
     return jsonify({'status': 200, 'message': "Report added successfully"})
 
@@ -113,4 +115,12 @@ def upvote():
     return jsonify({'status': 200, 'message': "Upvoted successfully"})
 
 
-app.run(debug=True,host="0.0.0.0")
+@app.route('/alert', methods=['POST'])
+def alert():
+    data = request.get_json()
+    db.execute("INSERT INTO precautions (report_id,data) VALUES (%s,%s)",
+               (data["report_id"], data["data"]))
+    return jsonify({'status': 200, 'message': "Precautions added successfully"})
+
+
+app.run()
