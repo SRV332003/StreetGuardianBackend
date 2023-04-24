@@ -16,7 +16,7 @@ headers = {
     'Access-Control-Allow-Origin': '*'
 }
 app = Flask(__name__)
-run_with_ngrok(app)
+# run_with_ngrok(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 
@@ -125,8 +125,10 @@ def alert():
 
 @app.route('/getPrecautions', methods=['GET'])
 def getPrecautions():
-    precautions = ai.ask()
-    return precautions
+    prompt = request.args.get('prompt')
+    precautions = ai.ask(prompt)
+    print(precautions)
+    return jsonify({'status': 200, 'data': precautions})
 
 
 app.run()
