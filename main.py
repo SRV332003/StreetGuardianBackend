@@ -141,9 +141,7 @@ def getspots():
     spots = db.fetchall()
     # print(spots)
     for spot in spots:
-        print(spot)
         data =  json.loads(spot['LatLong'])
-        print(data)
         if(abs(geopy.distance.distance((data['Lat'], data['Long']), (lat,long) ).m)<1000):
                 result.append(spot)
     print(result)
