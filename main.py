@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
 from flask_ngrok import run_with_ngrok
 import json
+import ai
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -81,7 +82,6 @@ def getReports():
     db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC limit 10")
     reports = db.fetchall()
     # type(reports)
-    print(reports)
     return json.dumps({'status': 200, 'data': reports}, default=str)
 
 
@@ -89,7 +89,7 @@ def getReports():
 def addReport():
     data = request.get_json()
     db.execute(
-        "INSERT INTO report (io_id,date,time,LatLong,title,description,vehicle_type,faults,severity,status,upvotes) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (data["io_id"], data["date"], data["time"], data["LatLong"], data["title"], data["description"], data["vehicle_type"], data["faults"], data["severity"], data["status"], data["upvotes"]))
+        "INSERT INTO report (io_id,date,time,LatLong,title,description,vehicle_type,faults,severity) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s)", (data["io_id"], data["date"], data["time"], data["LatLong"], data["title"], data["description"], data["vehicle_type"], data["faults"], data["severity"]))
     mydb.commit()
     return jsonify({'status': 200, 'message': "Report added successfully"})
 
@@ -121,6 +121,12 @@ def alert():
     db.execute("INSERT INTO precautions (report_id,data) VALUES (%s,%s)",
                (data["report_id"], data["data"]))
     return jsonify({'status': 200, 'message': "Precautions added successfully"})
+
+
+@app.route('/getPrecautions', methods=['GET'])
+def getPrecautions():
+    precautions = ai.ask()
+    return precautions
 
 
 app.run()
