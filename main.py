@@ -3,6 +3,7 @@ from flask import *
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
 from flask_ngrok import run_with_ngrok
+import geopy.distance
 import json
 import ai
 mydb = mysql.connector.connect(
@@ -16,7 +17,7 @@ headers = {
     'Access-Control-Allow-Origin': '*'
 }
 app = Flask(__name__)
-run_with_ngrok(app)
+# run_with_ngrok(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 
@@ -115,7 +116,7 @@ def upvote():
     return jsonify({'status': 200, 'message': "Upvoted successfully"})
 
 
-@app.route('/alert', methods=['POST'])
+@app.route('/addPrecautions', methods=['POST'])
 def alert():
     data = request.get_json()
     db.execute("INSERT INTO precautions (report_id,data) VALUES (%s,%s)",
@@ -128,5 +129,18 @@ def getPrecautions():
     precautions = ai.ask()
     return precautions
 
-
-app.run()
+@app.route('/getspots', methods=['GET'])
+def getspots():
+    result = []
+    lat = request.args.get('lat')
+    long = request.args.get('long')
+    db.execute("SELECT severity,faults,LatLong FROM report")       
+    
+    spots = db.fetchall()
+    for spot in spots:
+        data =  json.loads(spot['LatLong'])
+        if(abs(geopy.distance.distance((data['Lat'], data['Long']), (lat,long) ).m)<1000):
+                result.append(spot)
+    print(result)
+    return json.dumps({'status': 200, 'data': result}, default=str)
+app.run(debug=True)
