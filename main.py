@@ -134,16 +134,19 @@ def getPrecautions():
 @app.route('/getspots', methods=['GET'])
 def getspots():
     result = []
-    lat = float(request.args.get('lat'))
-    long = float(request.args.get('long'))
-    db.execute("SELECT severity,faults,LatLong FROM report")       
-    
-    spots = db.fetchall()
-    # print(spots)
-    for spot in spots:
-        data =  json.loads(spot['LatLong'])
-        if(abs(geopy.distance.distance((data['Lat'], data['Long']), (lat,long) ).m)<1000):
-                result.append(spot)
-    print(result)
-    return json.dumps({'status': 200, 'data': result}, default=str)
+    try:
+        lat = float(request.args.get('lat'))
+        long = float(request.args.get('long'))
+        db.execute("SELECT severity,faults,LatLong FROM report")       
+        
+        spots = db.fetchall()
+        # print(spots)
+        for spot in spots:
+            data =  json.loads(spot['LatLong'])
+            if(abs(geopy.distance.distance((data['Lat'], data['Long']), (lat,long) ).m)<1000):
+                    result.append(spot)
+        print(result)
+        return json.dumps({'status': 200, 'data': result}, default=str)
+    except:
+        return jsonify({'status': 333, 'data': "Error"})
 app.run(debug=True)
