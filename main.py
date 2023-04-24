@@ -17,7 +17,7 @@ headers = {
     'Access-Control-Allow-Origin': '*'
 }
 app = Flask(__name__)
-# run_with_ngrok(app)
+run_with_ngrok(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 
@@ -80,7 +80,7 @@ def ioregister():
 
 @app.route('/getReports', methods=['GET'])
 def getReports():
-    db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC limit 10")
+    db.execute("SELECT * FROM report ORDER BY upvotes,severity DESC")
     reports = db.fetchall()
     # type(reports)
     return json.dumps({'status': 200, 'data': reports}, default=str)
@@ -134,13 +134,16 @@ def getPrecautions():
 @app.route('/getspots', methods=['GET'])
 def getspots():
     result = []
-    lat = request.args.get('lat')
-    long = request.args.get('long')
+    lat = float(request.args.get('lat'))
+    long = float(request.args.get('long'))
     db.execute("SELECT severity,faults,LatLong FROM report")       
     
     spots = db.fetchall()
+    # print(spots)
     for spot in spots:
+        print(spot)
         data =  json.loads(spot['LatLong'])
+        print(data)
         if(abs(geopy.distance.distance((data['Lat'], data['Long']), (lat,long) ).m)<1000):
                 result.append(spot)
     print(result)
